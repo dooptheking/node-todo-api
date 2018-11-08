@@ -33,7 +33,7 @@ describe('POST /todos', () => {
         expect(res.body.text).toBe(text);
       })
       .end((err, res) => {
-        if(err) {
+        if (err) {
           return done(err);
         }
         
