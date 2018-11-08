@@ -8,12 +8,13 @@ var UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    minlength: 1,
+    minlength: 1,    
     //unique: false, //This line is causing the crashing tests
     validate: {
       validator: validator.isEmail,
       message: '{VALUE} is not a valid email'
-    }
+    },
+    
   },
   password: {
     type: String,
@@ -45,8 +46,29 @@ UserSchema.methods.generateAuthToken = function () {
   var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
   
   user.tokens = user.tokens.concat([{access, token}]);
+  
   return user.save().then(() => {
     return token;
+  });
+};
+
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded;
+  
+  try {
+    decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    // return new Promise((resolve, reject) => {
+      // reject();
+    // });
+    return Promise.reject();
+  }
+  
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
   });
 };
 
